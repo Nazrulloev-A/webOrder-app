@@ -8,9 +8,11 @@ import {
   Typography, 
   Container, 
   Link, 
-  Divider 
+  Divider,
+  Paper
 } from '@mui/material';
 import { Business } from '@mui/icons-material';
+import HeadIcon from '../assets/head.png';
 
 const Login = () => {
   const { login } = useContext(AuthContext);
@@ -54,19 +56,21 @@ const Login = () => {
           p: 2
         }}
       >
+       <Paper elevation={3} sx={{ padding: 4, marginTop: 8, textAlign: 'center', borderRadius: 2 }}>
         <Box
           sx={{
             width: '100%',
             textAlign: 'left'
           }}
         >
-           <Box component="img" src="/logo.png" alt="App Logo" sx={{ width: 90, marginBottom: 2 }} />
+           <Box component="img" src={HeadIcon} sx={{ width: 90, marginBottom: 2, display: "block",marginLeft:"auto",marginRight:"auto" }} />
           {/* Header Section */}
           <Typography variant="h1" sx={{ 
             fontSize: '1.5rem',
             fontWeight: 700,
             color: '#101828',
-            mb: 1
+            mb: 1,
+            textAlign: 'center'
           }}>
             Welcome
           </Typography>
@@ -76,7 +80,7 @@ const Login = () => {
             color: '#667085',
             mb: 3
           }}>
-            Spiritual goals during Ramadan
+            {/* text */}
           </Typography>
 
           {/* Error Message */}
@@ -129,7 +133,7 @@ const Login = () => {
             </Typography>
             <Link href="#" sx={{ 
               fontSize: '0.75rem',
-              color: '#6941c6',
+              color: '#292D2A',
               textDecoration: 'none',
               '&:hover': { textDecoration: 'underline' }
             }}>
@@ -198,6 +202,7 @@ const Login = () => {
             Continue
           </Button>
         </Box>
+      </Paper>
       </Container>
     </Box>
   );
