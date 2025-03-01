@@ -1,39 +1,47 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Login from '../pages/Login';
-import Layout from '../components/Layout'; // Adjust the path as needed
+import Layout from '../components/Layout';
 import ProtectedRoute from './ProtectedRoute';
 import Dashboard from '../pages/Dashboard';
 import OrdersList from '../pages/OrdersList';
 import AllOrders from '../pages/AllOrders';
 import Order from '../pages/Order';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const AppRoutes = () => {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
       
-      {/* Protected Routes wrapped in Layout */}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={
-          <Layout>
-            <Dashboard />
-          </Layout>
+          <ErrorBoundary>
+            <Layout>
+              <Dashboard />
+            </Layout>
+          </ErrorBoundary>
         } />
         <Route path="/dashboard/orders" element={
-          <Layout>
-            <OrdersList />
-          </Layout>
+          <ErrorBoundary>
+            <Layout>
+              <OrdersList />
+            </Layout>
+          </ErrorBoundary>
         } />
         <Route path="/dashboard/all-orders" element={
-          <Layout>
-            <AllOrders />
-          </Layout>
+          <ErrorBoundary>
+            <Layout>
+              <AllOrders />
+            </Layout>
+          </ErrorBoundary>
         } />
         <Route path="/dashboard/order" element={
-          <Layout>
-            <Order />
-          </Layout>
+          <ErrorBoundary>
+            <Layout>
+              <Order />
+            </Layout>
+          </ErrorBoundary>
         } />
       </Route>
     </Routes>
