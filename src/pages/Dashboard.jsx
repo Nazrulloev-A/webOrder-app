@@ -1,35 +1,30 @@
 import React, { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Container, Typography, Button, Box, Paper } from '@mui/material';
+import { Typography, Button, Box } from '@mui/material';
 
 const Dashboard = () => {
   const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
-    navigate('/');
   };
 
   return (
-    <Container maxWidth="md">
-      <Paper elevation={3} sx={{ padding: 4, marginTop: 8, textAlign: 'center' }}>
-        <Typography variant="h4" gutterBottom>
-          Welcome, {user.email}!
-        </Typography>
-        
-        <Typography variant="body1" sx={{ marginBottom: 2 }}>
-          You have successfully logged in.
-        </Typography>
-
-        <Box>
-          <Button variant="contained" color="secondary" onClick={handleLogout}>
-            Logout
-          </Button>
-        </Box>
-      </Paper>
-    </Container>
+    <Box sx={{
+      padding: { xs: '8px', sm: '24px' }, // Smaller padding on mobile
+      marginTop: { xs: '8px', sm: '32px' }, // Smaller margin on mobile
+      textAlign: 'center',
+    }}>
+      <Typography variant="h4" gutterBottom>
+        Dashboard
+      </Typography>
+      <Typography variant="body1" sx={{ marginBottom: { xs: '8px', sm: '16px' } }}>
+        You have successfully logged in.
+      </Typography>
+      <Button variant="contained" color="secondary" onClick={handleLogout} sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+        Logout
+      </Button>
+    </Box>
   );
 };
 
