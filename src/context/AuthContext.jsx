@@ -1,6 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
 
-// Create Authentication Context
 export const AuthContext = createContext();
 
 const AuthProvider = ({ children }) => {
@@ -14,15 +13,56 @@ const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Login function
-  const login = (email, password) => {
-    if (email === 'admin@example.com' && password === 'password123') {
-      const userData = { email };
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
+  // Sign Up function (using backend API)
+  const signup = async (email, password) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Sign Up failed');
+      }
+
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
       return true;
+    } catch (error) {
+      console.error('Sign Up Error:', error.message);
+      return false;
     }
-    return false;
+  };
+
+  // Login function (using backend API)
+  const login = async (email, password) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      setUser(data.user);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      return true;
+    } catch (error) {
+      console.error('Login Error:', error.message);
+      return false;
+    }
   };
 
   // Logout function
@@ -32,7 +72,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, signup }}>
       {children}
     </AuthContext.Provider>
   );
