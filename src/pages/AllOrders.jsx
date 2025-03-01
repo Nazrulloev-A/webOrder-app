@@ -1,161 +1,157 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Container, 
-  Typography, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow, 
-  Checkbox, 
-  Button, 
-  Box 
-} from '@mui/material';
+import { AgGridReact } from 'ag-grid-react';
 import { supabase } from '../supabaseClient';
+import { Box, Typography, Button } from '@mui/material';
+import { ModuleRegistry } from 'ag-grid-community';
+import { ClientSideRowModelModule } from 'ag-grid-community';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+
+ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
 const AllOrders = () => {
   const [orders, setOrders] = useState([]);
-  const [selectedOrders, setSelectedOrders] = useState([]);
+  const [gridApi, setGridApi] = useState(null);
 
-  // Fetch all orders from Supabase
+  // Column definitions with null safety
+  const [columnDefs] = useState([
+    {
+      field: 'id',
+      headerName: '',
+      checkboxSelection: true,
+      headerCheckboxSelection: true,
+      width: 60
+    },
+    { field: 'customer_name', headerName: 'Name', filter: true, flex: 1 },
+    { field: 'product', headerName: 'Product', flex: 1 },
+    { field: 'quantity', headerName: '#', width: 80 },
+    { 
+      field: 'created_at', 
+      headerName: 'Date',
+      valueFormatter: (params) => params.value 
+        ? new Date(params.value).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          })
+        : ''
+    },
+    { field: 'street', headerName: 'Street', flex: 1 },
+    { field: 'city', headerName: 'City', width: 120 },
+    { field: 'state', headerName: 'State', width: 80 },
+    { field: 'zip', headerName: 'Zip', width: 100 },
+    { field: 'card_type', headerName: 'Card', width: 120 },
+    { 
+      field: 'card_number', 
+      headerName: 'Card Number',
+      valueFormatter: (params) => params.value 
+        ? params.value.replace(/.(?=.{4})/g, '*')
+        : ''
+    },
+    { field: 'expire_date', headerName: 'Exp', width: 100 }
+  ]);
+
+  // Fetch orders with error handling
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
         setOrders(data || []);
+        
+        if (error) throw error;
       } catch (error) {
-        console.error('Error fetching orders:', error.message);
-        alert('Error fetching orders. Please try again.');
+        console.error('Fetch error:', error);
+        setOrders([]);
       }
     };
     fetchOrders();
   }, []);
 
-  // Handle checkbox selection
-  const handleSelectOrder = (orderId) => {
-    setSelectedOrders((prev) =>
-      prev.includes(orderId) ? prev.filter(id => id !== orderId) : [...prev, orderId]
-    );
-  };
-
-  // Handle "Check All" and "Uncheck All"
-  const handleToggleAll = (checked) => {
-    if (checked) {
-      setSelectedOrders(orders.map(order => order.id));
-    } else {
-      setSelectedOrders([]);
-    }
-  };
-
-  // Handle deleting selected orders
+  // Delete handler with null checks
   const handleDeleteSelected = async () => {
-    if (selectedOrders.length === 0) {
-      alert('Please select at least one order to delete.');
+    if (!gridApi) return;
+    
+    const selectedRows = gridApi.getSelectedRows() || [];
+    
+    if (selectedRows.length === 0) {
+      alert('Please select orders to delete');
       return;
     }
 
-    if (window.confirm('Are you sure you want to delete the selected orders?')) {
+    if (window.confirm(`Delete ${selectedRows.length} orders?`)) {
       try {
         const { error } = await supabase
           .from('orders')
           .delete()
-          .in('id', selectedOrders);
+          .in('id', selectedRows.map(row => row.id));
 
-        if (error) throw error;
-
-        setOrders(orders.filter(order => !selectedOrders.includes(order.id)));
-        setSelectedOrders([]);
-        alert('Selected orders deleted successfully!');
+        if (!error) {
+          gridApi.applyTransaction({ remove: selectedRows });
+          gridApi.deselectAll();
+        }
       } catch (error) {
-        console.error('Error deleting orders:', error.message);
-        alert('Error deleting orders. Please try again.');
+        console.error('Delete error:', error);
       }
     }
   };
 
   return (
-    <Container maxWidth="lg" sx={{
-      padding: { xs: '8px', sm: '24px' },
-      marginTop: { xs: '8px', sm: '32px' },
+    <Box sx={{ 
+      width: '100%',
+      height: '100vh',
+      p: 3,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 2
     }}>
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="h4" gutterBottom sx={{ color: 'primary.main' }}>
-          List of All Orders
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-          <Button 
-            variant="contained" 
-            color="info" 
-            onClick={() => handleToggleAll(true)}
-            sx={{ backgroundColor: '#A9A9A9', '&:hover': { backgroundColor: '#808080' } }}
-          >
-            Check All
-          </Button>
-          <Button 
-            variant="contained" 
-            color="info" 
-            onClick={() => handleToggleAll(false)}
-            sx={{ backgroundColor: '#A9A9A9', '&:hover': { backgroundColor: '#808080' } }}
-          >
-            Uncheck All
-          </Button>
-          <Button 
-            variant="contained" 
-            color="error" 
-            onClick={handleDeleteSelected}
-            sx={{ backgroundColor: '#FF4500', '&:hover': { backgroundColor: '#FF6347' } }}
-          >
-            Delete Selected
-          </Button>
-        </Box>
-      </Box>
+      <Typography variant="h4" sx={{ color: 'primary.main' }}>
+        List of All Orders
+      </Typography>
 
-      <TableContainer sx={{ border: '1px solid #ddd', backgroundColor: '#f5f5f5' }}>
-        <Table>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: '#A9A9A9' }}>
-              <TableCell sx={{ fontWeight: 'bold' }}></TableCell> {/* Checkbox column */}
-              <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Product</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>#</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Street</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>City</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>State</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Zip</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Card</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Card Number</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Exp</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {orders.map((order) => (
-              <TableRow key={order.id} sx={{ '&:nth-of-type(odd)': { backgroundColor: '#fff' } }}>
-                <TableCell>
-                  <Checkbox
-                    checked={selectedOrders.includes(order.id)}
-                    onChange={() => handleSelectOrder(order.id)}
-                  />
-                </TableCell>
-                <TableCell>{order.customer_name}</TableCell>
-                <TableCell>{order.product}</TableCell>
-                <TableCell>{order.quantity}</TableCell>
-                <TableCell>{new Date(order.created_at).toLocaleDateString('en-US', { day: '2-digit', month: '2-digit', year: '2-digit' })}</TableCell>
-                <TableCell>{order.street}</TableCell>
-                <TableCell>{order.city}</TableCell>
-                <TableCell>{order.state || 'N/A'}</TableCell>
-                <TableCell>{order.zip}</TableCell>
-                <TableCell>{order.card_type}</TableCell>
-                <TableCell>{order.card_number}</TableCell>
-                <TableCell>{order.expire_date}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </Container>
+      <Button
+        variant="contained"
+        color="error"
+        onClick={handleDeleteSelected}
+        sx={{ 
+          alignSelf: 'flex-start',
+          backgroundColor: '#FF4500',
+          '&:hover': { backgroundColor: '#FF6347' }
+        }}
+      >
+        Delete Selected ({gridApi?.getSelectedRows()?.length || 0})
+      </Button>
+
+      <Box sx={{ 
+        flex: 1,
+        width: '100%',
+        '& .ag-theme-alpine': {
+          height: '100%',
+          width: '100%'
+        }
+      }}>
+        <AgGridReact
+          rowData={orders}
+          columnDefs={columnDefs}
+          onGridReady={(params) => setGridApi(params.api)}
+          rowSelection="multiple"
+          suppressRowClickSelection
+          pagination={true}
+          paginationPageSize={20}
+          domLayout="autoHeight"
+          defaultColDef={{
+            sortable: true,
+            resizable: true,
+            filter: true,
+            // Add default null handling
+            valueFormatter: params => params.value ?? ''
+          }}
+        />
+      </Box>
+    </Box>
   );
 };
 
