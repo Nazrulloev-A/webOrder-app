@@ -1,7 +1,7 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Login from '../pages/Login';
-import Layout from '../components/Layout';
+import Layout from '../components/Navbar';
 import ProtectedRoute from './ProtectedRoute';
 import Dashboard from '../pages/Dashboard';
 import OrdersList from '../pages/OrdersList';

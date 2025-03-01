@@ -16,9 +16,12 @@
     "@mui/material": "^6.4.6",
     "@mui/system": "^6.4.6",
     "@supabase/supabase-js": "^2.49.1",
+    "ag-grid-community": "^33.1.1",
+    "ag-grid-react": "^33.1.1",
     "bcryptjs": "^3.0.2",
     "formik": "^2.4.6",
     "react": "^19.0.0",
+    "react-country-flag": "^3.1.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.2.0",
     "yup": "^1.6.1"
